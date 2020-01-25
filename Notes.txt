@@ -1,1 +1,2 @@
 Downloading to /usr/local/bin
+echo $PATH
