@@ -1,2 +1,155 @@
+Cloud Academy - Managing Infrastructure With Terraform
+
+INTRO
+# Course Introduction
+
+OVERVIEW
+# What is Terraform?
+
+https://www.terraform.io/downloads.html
 Downloading to /usr/local/bin
 echo $PATH
+
+1. Write/Modify Configuration Files
+2. Create an execution plan with .plan command (generates execution plan from a configuration)
+3. Review the plan
+4. Accept or Reject
+5. Apply the changes with .apply command
+
+To undo:
+1. use version control to apply a previous configuration file
+2. use the [destroy] or [tank] command to target components that need to be [deleted] or [recreated] respectively
+
+Terraform uses Dependency information to plan the order of infrastructure changes
+- builds a Resource Graph that captures all the dependency information
+- depencies naturally described by your configuration
+- changes can be applied in parallel when no dependencies exist
+- can output the graph for visualization
+
+Terraform supports Automation
+- Integrating into a CI or CD pipeline
+- Automatically create infrastructure to deploy new branches
+- Can automatically accept Plans to have infrastructure update to the latest version
+- Or, for Production environments, opt for Manual approval step
+- With the generated Execution Plan and Resource Graph, can preview what will happen and in what order
+- Finally, can generate a Plan *only* for reviewing Pull Requests
+
+Migrating to Terraform
+- if already invested in an IaaC solution, Terraform can help transfer control of infras over to Terraform
+- supports importing existing resources to bring them under control using Import command
+- can try this out in Manage AWS Resources with Terraform lab
+
+
+TERRAFORM PARTS
+
+# Terraform Configuration
+- Hashicorp Configuration Language (HCL) used to write configurations in Terraform
+-- structured configuration language that is both human and machine friendly
+-- for use with command-line tools
+-- specifically targeted towards DevOps tools, servers, etc.
+- Interpolation syntax used to make configurations dynamic
+- JSON can also be used by Terraform - mainly aimed at automated configuration generation that WON'T be seen by humans
+- also supports commenting
+
+* Most essential pieces of managing infrastructure with Terraform are called Resources
+- Resources are the infras components managed by Terraform
+-- Resource Examples: VMs, databases, or version control system
+-- Declare resources in configuration and configure their properties all in HCL
+
+- Resources are made available through Providers
+-- Providers are the Infras Integrations
+-- Configuration usually involves some form of credentials to grant access to provider's API
+-- Provider routes the API provided by the underlying infras host
+
+- Variables are configured as inputs to your configuration
+-- includes a default variable value using "default = "..."" so no error if user does not provide a value
+
+- Outputs are infras values you want to easily access
+-- Example: DNS name of a load balancer, SSH command used to connect to an instance created by the configuration, 
+-- When you apply a configuration, Terraform displays the Outputs you configure
+-- access Outputs any time using [output] command
+-- command is useful for integrating Terraform with scripting environments
+
+- Data Sources fetch information defined outside the Terraform configuration
+-- EXAMPLE: retrieve information from other projects using data sources made available by providers
+-- no requirement that the data retrieved is managed by Terraform
+
+HCL Syntax
+- Supports 2 forms of Commenting: 1. /* */ and 2. #
+- assigning values using = not required, but improve readability
+- [fmt] command can automatically format a config file to follow the recommended spacing rules
+- values assigned can be any of the supported Types
+- Primitive Types: strings (always enclosed in double quotes), numbers, booleans
+- Complex Types: lists (for primitive types, enclosed in brackets) and maps (assign a collection of keys and values, enclosed in curly brackets/"braces"), both allowed to be empty
+-- in most cases, values can be interpolated inside strings EXAMPLE: image = "${var.image}"
+
+- Configuration Blocks start with a keyword to indicate type of configuration (EXAMPLES: provider, variable, resource, output)
+-- followed by one or more Strings
+-- then a Map enclosed in Braces
+-- usually ONE string after keyword indicating Name
+-- for Resources there TWO strings 1. type of resource 2. name of resource used by T to identify resource
+-- name used by T does NOT have to match name used by provider
+-- name must be Unique
+
+- Interpolation
+-- EXAMPLE: image = "${var.image}"
+-- ${var.name_of_string_variable}
+-- for specific Key in a Map: ${var.name_of_map_variable["key"]}
+-- for specific Item in a List: ${var.name_of_list_variable[index]} #index starts at 0
+-- for values of Resource Attributes (all properties T knows about a resource): include arguments set in resource blocks, values set as a side effect of creating your resource: ${type.name.attribute}
+-- from a Data Source, use same pattern as a Resource (but with data. at the beginning: ${data.type.name.attribute}
+-- Use Conditions inside interpolation syntax to make branching decisions, like different size instance in test versus production
+--- syntax: ${condition ? true_expr : false_expr}
+--- condition must be boolean, can use equality operators == !=, numerical comparisons < > <= >=, logical operators && || !
+--- EXAMPLE: machine_type = "${var.env == "production" ? "n1-highmem-64" : "n1-standard-1"}"
+-- Basic math operations are supported on numbers + - * / %
+-- Dozens of built-in functions https://www.terraform.io/docs/configuration/interpolation.html#supported-built-in-functions
+
+Assigning Variables
+- default key, used to infer type; if no default and no type specified, default type of String is used
+- default value CAN'T use Interpolations
+- when no default is provided, you MUST specify a value
+- interactively prompts for values when no default is specified
+- dash var (-var) options for both [plan] and [apply] commands EXAMPLE: -var 'env=staging'
+BEST FOR VERSION CONTROL: use Variable Files
+- use HCL syntax for defining variable values
+- Variable files can be included using COMMAND: -var-file=../vars.auto.tfvars
+-- included automatically when named terraform.tfvars or *.auto.tfvars
+-- can use multiple variable files
+-- files defined in [var-file] option over-ride variables defined using automatic variable files
+USING ENVIRONMENT VARIABLES:
+- EXAMPLE: TF_VAR_env=staging
+- Must begin with TF_VAR_ followed by name of TF variable
+
+- When a variable is assigned multiple times, the value of the variable is assigned to the one with the highest precedence
+- Map Variables are NOT set to the highest precedent definition
+- instead, values assigned to the map variable all are merged together into a single map
+- Precedence order from lowest to highest
+
+Configuration File Discovery
+- running T [plan] or [apply] command, it will inspect cwd for files ending in .tf to discover configuration files written in HCL
+- if using JSON, file extension should be .tf.json
+- T can read a mix of .tf and .tf.json
+- configuration files are loaded in alphabetical order
+- common pattern: variables.tf, outputs.tf, main.tf
+- the loaded files are essentially appended
+
+Modules
+- Another way to organize configurations is with Modules
+- Modules are reusable configuration packages
+- can be shared using sources like file systems, Github, Amazon S3, Terraform registries
+- Terraform Modular Registries have benefit of supporting versions specified in HCL, while other sources don't have built-in support for modular versions
+- Hashicorp hosts: https:registry.terraform.io
+- ANYONE can publish modules to the registry
+- Terraform Enterprise includes a private modular registry
+- lab that demonstrates using modular registry to build
+
+# Providers
+
+# Resources
+
+# State
+
+
+DEMO
+# Two-Tier Application Demo
