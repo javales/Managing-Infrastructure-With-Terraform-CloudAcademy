@@ -189,12 +189,79 @@ terraform init
 - Service account key (role: Owner, just for demo purposes)
 - set up credentials in bash shell using COMMAND export GOOGLE_CREDENTIALS=/Users/ca/Downloads/Terraform\ GCP\ Demo-239423n23.json
 
-
-
 # Resources
+- Core of T configuration
+- too many to discuss in one lesson
+- instead covering aspects of resource configuration shared by all resources
+- Meta-parameters, Provisioners, and Lifecycle blocks
+
+Definition: A component of your infrastructure
+- each resource has its own attributes and arguments
+
+Meta-Parameters
+- Configuration keys available to all resources
+EXAMPLES: [provider], [depends_on]
+Best Practice: rely on Implicit Dependencies when possible
+- [depends_on] used when dependencies aren't implicitly captured
+- Syntax: assign a list, include strings of format resourcetype.resourcename for the dependent upon resources
+- resource is Created AFTER or Deleted BEFORE any depended upon resources
+- [count] shows how many copies of resource to create
+- can use 0 for [count = "${var.num_servers}"] to indicate you don't want the resource, and instead of removing the resource code altogether
+* other examples at 2:20 include how to return a list of attribute values for all compute instance copies referred to as Splat Syntax
+
+Provisioners
+- Terraform is NOT a configuration management tool, recommending using a tool that is built for configuration management to manage software on machines
+- all share a few keys
+- can be used to run scripts when any resource is created or destroyed
+- EXAMPLES: local, remote exec to run scripts on machine running T or an a remote machine, respectively
+
+Lifecyle
+- all resources can specify a lifecycle block
+- lifecycle block can specify up to 3 optional keys
+1. [create_before_destroy] boolean default false
+2. [prevent_destroy] default false
+3. [ignore_changes] tells T to ignore changes to the specified resource attributes (EXAMPLE: when T created a route table that has routes dynamically populated)
+
+Demo
+5:45
+- provisioners are usually used in the create and destroy of VMs, but can be used in any resource block
+- google compute engine API may be disabled, causing Apply command to fail
+- [destroy]
+
 
 # State
+- T must keep track of the state of the resources it manages
+Definition: Maps real world resources to your configuration, keeps track of metadata, and improves performance for large infrastructures
+- by default, T will refresh its state before any operation
+- state is used to generate plans
 
+Where is state stored?
+Backends
+- T persists data in several different backends
+- Enhanced Backends - [local] makes operations appear to be running locally
+- default backend is [local] backend which stores data in a file on the local file system
+- local backend stores state in local directory in file terraform.tfstate written in JSON
+- [Remote state] is recommended for teams due to frequent merge conflicts with the state file
+- remote state is also more secure, because the data can be encrpted at rest, and T only stores remote state in memory, never on disk
+- requests for remote state are also encrypted using TLS
+- can also access remote state using data sources, allowing different projects to access project state in a read-only fashion
+- Locking - if backend supports locking, T will lock the state while an operation that could potentially write state changes is happening; this prevents state corruption
+
+What is stored?
+- terraform.tfstate file:
+-- EXAMPLE: for one that manages an instance
+-- top-level fields - version of the state format, version of T used, serial number that increments every time state changes, list of modules
+
+Workspaces - containers for state
+- can use workspaces to manage infras environments using the same configuration files
+- EXAMPLE: may want to create a workspace for every brancing in the version control system
+- local and cloud storage backends all support workspaces
+- managed using the [workspace] command
+- create new using [new]
+- switch between workspaces using [select] subcommand
+- if select a new workspace, there is no state until you apply the configuration
+- can interpolate the current workspace in the configuration using terraform.workspace [${terraform.workspace}]
+- useful for conditions that modify the configuration based on workspace EXAMPLE: when you have a development and production workspace
 
 DEMO
 # Two-Tier Application Demo
