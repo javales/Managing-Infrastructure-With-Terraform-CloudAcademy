@@ -145,6 +145,51 @@ Modules
 - lab that demonstrates using modular registry to build
 
 # Providers
+- Definition: "The logical abstraction of an upstream API"
+
+Plugin Architecture
+- T doesn't ship with any providers built-in
+- instead, plugins are downloaed as required by configuration
+- Intialize T by running [init] command, which downloads plugins to "plugins" directory
+- >100 T providers available
+- can write your own provider plugins in Golang
+- Custom providers: https://www.terraform.io/guides/writing-custom-terraform-providers.html
+
+Provider Versioning
+- Best Practice: constrain provider versions in your configurations
+-- EXAMPLES:
+"1.12.1"
+">= 1.2, < 1.12"
+"~> 1.7" #is like saying ">= 1.7.0, < 2.0.0"
+- must use [-upgrade] option of the [init] command to force upgrades within constraints to occur
+
+Provider Aliases
+- Can declare multiple blocks for the same provider in your configuration
+- EXAMPLE: when have resources with the same cloud provider but in multiple regions
+- for T to identify multiple instances of single provider, must add an Alias
+- Alias used by resources to indicate which instance of the provider to use
+- One Default Provider is allowed, which is the one the doesn't specify an alias, used when a resource doesn't specify a provider
+- EXAMPLE: (specifying a provider alias)
+resource "google_compute_disk" "default" { 
+  provider = "google.west"...
+Providers https://www.terraform.io/docs/providers/index.html
+
+Demo:
+- Can use Interpolation to avoid putting credentials in version control
+credentials = "${file("account.json")}"
+- Also can use Environment Variables
+https://www.terraform.io/docs/providers/google/guides/provider_reference.html#credentials
+
+* Provider block interpolations are allowed except for Version and Alias which both must be hard-coded
+
+COMMANDS
+terraform init
+- now set up credentials in GCP for T to use
+- APIs & Services > Credentials
+- Service account key (role: Owner, just for demo purposes)
+- set up credentials in bash shell using COMMAND export GOOGLE_CREDENTIALS=/Users/ca/Downloads/Terraform\ GCP\ Demo-239423n23.json
+
+
 
 # Resources
 
