@@ -265,3 +265,7 @@ Workspaces - containers for state
 
 DEMO
 # Two-Tier Application Demo
+
+SUMMARY
+# Summary
+Terraform GitHub repository: https://github.com/hashicorp/terraform
